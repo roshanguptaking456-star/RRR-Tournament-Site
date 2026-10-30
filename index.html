@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Esports Pro Arena</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b0c10;
+            --bg-secondary: #1f2833;
+            --accent-glow: #ff4a5a;
+            --accent-neon: #00f0ff;
+            --text-light: #c5c6c7;
+            --text-white: #ffffff;
+            --esewa-green: #60bb46;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-light); overflow-x: hidden; }
+        header { background: linear-gradient(180deg, rgba(31,40,51,0.95) 0%, rgba(11,12,16,0.9) 100%); border-bottom: 2px solid var(--accent-glow); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: fixed; width: 100%; top: 0; z-index: 1000; backdrop-filter: blur(10px); }
+        .logo { font-family: 'Orbitron', sans-serif; font-size: 24px; color: var(--text-white); font-weight: 700; text-shadow: 0 0 10px var(--accent-glow); }
+        .logo span { color: var(--accent-glow); }
+        .nav-container { display: flex; align-items: center; gap: 25px; }
+        nav a { color: var(--text-white); text-decoration: none; font-size: 18px; font-weight: 700; margin-left: 15px; }
+        nav a:hover, nav a.active { color: var(--accent-neon); text-shadow: 0 0 8px var(--accent-neon); }
+        .balance-pill { background: rgba(0, 240, 255, 0.1); border: 1px solid var(--accent-neon); padding: 6px 14px; border-radius: 20px; color: var(--text-white); font-weight: 700; font-family: 'Orbitron', sans-serif; display: flex; align-items: center; gap: 5px; }
+        .hero { margin-top: 85px; padding: 40px 20px; text-align: center; background: linear-gradient(rgba(11,12,16,0.8), rgba(11,12,16,0.95)), url('https://unsplash.com') center/cover; min-height: 25vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .auth-box { background: var(--bg-secondary); padding: 30px 20px; border-radius: 8px; border: 1px solid var(--accent-neon); margin: 20px auto; max-width: 400px; text-align: center; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: none; }
+        .custom-google-btn { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(90deg, #e74c3c, #c0392b); color: #fff; padding: 12px 24px; font-size: 16px; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: 0.3s ease; width: 100%; margin-top: 10px; }
+        .custom-google-btn:hover { box-shadow: 0 0 12px var(--accent-glow); transform: translateY(-1px); }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 24px; color: var(--text-white); margin: 30px 0 15px 0; border-left: 4px solid var(--accent-glow); padding-left: 10px; text-transform: uppercase; }
+        .tournament-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .card { background-color: var(--bg-secondary); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden; transition: 0.3s; }
+        .card:hover { transform: translateY(-3px); border-color: var(--accent-glow); box-shadow: 0 5px 15px rgba(255, 74, 90, 0.2); }
+        .card-header { background: #111; padding: 12px 15px; font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--text-white); display: flex; justify-content: space-between; }
+        .badge { background: var(--accent-glow); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .card-body { padding: 20px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .sub-text { font-size: 13px; color: #ff9ff3; font-style: italic; }
+        .slots-bar { background: #111; height: 6px; border-radius: 3px; margin: 10px 0; overflow: hidden; }
+        .slots-fill { background: var(--accent-neon); height: 100%; width: 0%; transition: 0.4s; }
+        .btn { display: block; width: 100%; background: linear-gradient(90deg, var(--accent-glow), #b32432); color: white; border: none; padding: 12px; font-size: 16px; font-weight: 700; cursor: pointer; border-radius: 4px; text-transform: uppercase; margin-top: 15px; }
+        .btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--bg-secondary); border: 2px solid var(--accent-neon); width: 95%; max-width: 500px; border-radius: 8px; padding: 25px; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #fff; cursor: pointer; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 4px; color: #fff; }
+        .form-control { width: 100%; background: #111; border: 1px solid #444; padding: 10px; color: #fff; border-radius: 4px; }
+        .ban-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; color: var(--accent-glow); justify-content: center; align-items: center; flex-direction: column; font-family: 'Orbitron', sans-serif; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="ban-overlay" id="banScreen">
+        <h1>🚫 ACCESS TERMINATED 🚫</h1>
+        <p style="margin-top:20px; font-size:20px; color:#fff;">Aapka Google Account / Profile admin dwara permanently ban kar diya gaya hai.</p>
+    </div>
+
+    <header>
+        <div class="logo">ELITE<span>PRO</span></div>
+        <div class="nav-container">
+            <nav>
+                <a href="#" class="active">Matches</a>
+                <a href="dashboard.html">e-Sewa Wallet</a>
+            </nav>
+            <div class="balance-pill">💰 Coins: <span id="coinDisplay">0</span></div>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1 style="font-family:'Orbitron'; color:#fff; text-shadow: 0 0 10px var(--accent-neon);">ULTRA ARENA</h1>
+        <p style="color:var(--accent-neon); margin-top:5px;">Professional Automated Esports System</p>
+    </div>
+
+    <div class="auth-box" id="loginBox">
+        <h2 style="font-family:'Orbitron'; color:#fff; margin-bottom:15px; font-size:20px;">Player Verification</h2>
+        <p style="color:#aaa; margin-bottom:20px; font-size:14px;">Tournament enter karne ke liye Google account verify karna compulsory hai.</p>
+        <button class="custom-google-btn" onclick="loginWithGoogleOAuth()">🌐 Sign In With Google</button>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <!-- FULL MAP MODES -->
+        <h2 class="section-title">🔥 Full Map Tournament</h2>
+        <div class="tournament-grid">
+            <div class="card">
+                <div class="card-header">SOLO WARRIORS <span class="badge">SOLO</span></div>
+                <div class="card-body">
+                    <div class="info-row"><span>Entry Fee:</span><span style="color:var(--accent-neon)">25 Coins</span></div>
+                    <div class="info-row"><span>Slots Locked:</span><span><span id="slot-f-solo">0</span> / 48</span></div>
+                    <div class="slots-bar"><div class="slots-fill" id="bar-f-solo"></div></div>
+                    <button class="btn" id="btn-f-solo" onclick="openMatchModal('Solo Warriors (Full Map)', 25, 'Solo', 'MAP')">Join Match</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">DUO ASSAULT <span class="badge" style="background:#e67e22">DUO</span></div>
+                <div class="card-body">
+                    <div class="info-row"><span>Entry Fee:</span><span style="color:var(--accent-neon)">50 Coins</span></div>
+                    <div class="info-row"><span>Slots Locked:</span><span><span id="slot-f-duo">0</span> / 24</span></div>
+                    <div class="slots-bar"><div class="slots-fill" id="bar-f-duo"></div></div>
+                    <div class="sub-text">👥 Play with friend</div>
+                    <button class="btn" id="btn-f-duo" onclick="openMatchModal('Duo Assault (Full Map)', 50, 'Duo', 'MAP')">Join Match</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">SQUAD CLAN WARS <span class="badge" style="background:#9b59b6">SQUAD</span></div>
+                <div class="card-body">
+                    <div class="info-row"><span>Entry Fee:</span><span style="color:var(--accent-neon)">100 Coins</span></div>
+                    <div class="info-row"><span>Slots Locked:</span><span><span id="slot-f-squad">0</span> / 12</span></div>
+                    <div class="slots-bar"><div class="slots-fill" id="bar-f-squad"></div></div>
+                    <button class="btn" id="btn-f-squad" onclick="openMatchModal('Squad Clan Wars (Full Map)', 100, 'Squad', 'MAP')">Join Match</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLASH SQUAD MODES -->
+        <h2 class="section-title">⚡ Clash Squad (CS) Tournament</h2>
+        <div class="tournament-grid">
+            <div class="card">
+                <div class="card-header">CS SQUAD ALPHA <span class="badge" style="background:#9b59b6">SQUAD</span></div>
+                <div class="card-body">
+                    <div class="info-row"><span>Entry Fee:</span><span style="color:var(--accent-neon)">80 Coins</span></div>
+                    <div class="info-row"><span>Time Room:</span><span>07:00 PM</span></div>
+                    <div class="info-row"><span>Slots Locked:</span><span><span id="slot-c-alpha">0</span> / 12</span></div>
+                    <div class="slots-bar"><div class="slots-fill" id="bar-c-alpha"></div></div>
+                    <button class="btn" id="btn-c-alpha" onclick="openMatchModal('CS Squad Alpha', 80, 'Squad', 'CS')">Join Match</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">CS SQUAD OMEGA <span class="badge" style="background:#9b59b6">SQUAD</span></div>
+                <div class="card-body">
+                    <div class="info-row"><span>Entry Fee:</span><span style="color:var(--accent-neon)">150 Coins</span></div>
+                    <div class="info-row"><span>Time Room:</span><span>09:30 PM</span></div>
+                    <div class="info-row"><span>Slots Locked:</span><span><span id="slot-c-omega">0</span> / 12</span></div>
+                    <div class="slots-bar"><div class="slots-fill" id="bar-c-omega"></div></div>
+                    <button class="btn" id="btn-c-omega" onclick="openMatchModal('CS Squad Omega', 150, 'Squad', 'CS')">Join Match</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Match Joining Modal Form Workspace -->
+    <div class="modal" id="matchModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 class="section-title" id="mTitle" style="margin-top:0;">Join Arena Match</h3>
+            <form onsubmit="confirmMatchEntry(event)">
+                <input type="hidden" id="mName"><input type="hidden" id="mFee"><input type="hidden" id="mType"><input type="hidden" id="mMode">
+                <div class="form-group"><label>Free Fire Player UID</label><input type="text" id="pUID" class="form-control" required placeholder="Enter Free Fire Game UID"></div>
+                <div class="form-group"><label>In-Game Character Name (IGN)</label><input type="text" id="pIGN" class="form-control" required placeholder="Enter Character IGN"></div>
+                <div class="form-group" id="teamInputBox" style="display:none;">
+                    <label>Teammates Data Logs Tracking (Name + UIDs)</label>
+                    <textarea id="teamDetails" class="form-control" rows="3" placeholder="Player2 (UID: 7281), Player3 (UID: 9301) etc."></textarea>
+                </div>
+                <button type="submit" class="btn">Confirm Entry & Deduct Coins</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxs44WLqL-VuHiOEP_Cp2yz3c5-6dSvZMqUD44Xachla88xeVwZkEx5rzH6ol2KWpfi/exec";
+        const GOOGLE_CLIENT_ID = "640952110500-kd8sv7n1bfjcpp4km8ukjf0cgcqhpc2d.apps.googleusercontent.com";
+        let userEmail = "";
+
+        function loginWithGoogleOAuth() {
+            const redirectUri = window.location.origin + window.location.pathname; 
+            const oauthUrl = `https://google.com{GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=profile%20email`;
+            window.location.href = oauthUrl;
+        }
+
+        function checkOAuthCallback() {
+            const hash = window.location.hash;
+            if (hash) {
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get("access_token");
+                if (accessToken) {
+                    fetch(`https://googleapis.com{accessToken}`)
+                    .then(res => res.json())
+                    .then(profile => {
+                        userEmail = profile.email;
+                        localStorage.setItem('userEmail', userEmail);
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        syncWithDatabase(userEmail, profile.name);
+                    });
+                }
+            }
+        }
+
+        function syncWithDatabase(email, name) {
+            fetch(`${GOOGLE_WEB_APP_URL}?action=checkPlayer&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`, {method:'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "Banned") {
+                    document.getElementById('banScreen').style.display = 'flex';
+                } else {
+                    document.getElementById('loginBox').style.display = 'none';
+                    document.getElementById('mainContainer').style.display = 'block';
+                    document.getElementById('coinDisplay').innerText = data.coins;
+                    localStorage.setItem('userCoins', data.coins);
+                    loadLiveSlots();
+                }
+            });
+        }
+
+        function loadLiveSlots() {
+            if(GOOGLE_WEB_APP_URL === "") return;
+            fetch(`${GOOGLE_WEB_APP_URL}?action=getSlots`)
+            .then(res => res.json())
+            .then(counts => {
+                const config = [
+                    { id: 'f-solo', name: 'Solo Warriors (Full Map)', max: 48 },
+                    { id: 'f-duo', name: 'Duo Assault (Full Map)', max: 24 },
+                    { id: 'f-squad', name: 'Squad Clan Wars (Full Map)', max: 12 },
+                    { id: 'c-alpha', name: 'CS Squad Alpha', max: 12 },
+                    { id: 'c-omega', name: 'CS Squad Omega', max: 12 }
+                ];
+                config.forEach(item => {
+                    let filled = counts[item.name] || 0;
+                    document.getElementById(`slot-${item.id}`).innerText = filled;
+                    let pct = (filled / item.max) * 100;
+                    document.getElementById(`bar-${item.id}`).style.width = pct + "%";
+                    if(filled >= item.max) {
+                        let btn = document.getElementById(`btn-${item.id}`);
+                        btn.innerText = "ROOM FULL";
+                        btn.disabled = true;
+                    }
+                });
+            });
+        }
+
+        function openMatchModal(name, fee, mode, type) {
+            document.getElementById('mTitle').innerText = name;
+            document.getElementById('mName').value = name;
+            document.getElementById('mFee').value = fee;
+            document.getElementById('mType').value = type;
+            document.getElementById('mMode').value = mode;
+
+            if(mode === "Solo") {
+                document.getElementById('teamInputBox').style.display = 'none';
+            } else {
+                document.getElementById('teamInputBox').style.display = 'block';
+            }
+            document.getElementById('matchModal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('matchModal').style.display = 'none'; }
+
+        function confirmMatchEntry(e) {
+            e.preventDefault();
+            let uid = document.getElementById('pUID').value;
+            let ign = document.getElementById('pIGN').value;
+            let name = document.getElementById('mName').value;
+            let fee = document.getElementById('mFee').value;
+            let type = document.getElementById('mType').value;
+            let mode = document.getElementById('mMode').value;
+            let team = document.getElementById('teamDetails').value || "None (Solo)";
+            let email = localStorage.getItem('userEmail');
+
+            fetch(`${GOOGLE_WEB_APP_URL}?action=joinMatch&email=${encodeURIComponent(email)}&uid=${uid}&ign=${encodeURIComponent(ign)}&matchName=${encodeURIComponent(name)}&fee=${fee}&matchType=${type}&mode=${mode}&teamDetails=${encodeURIComponent(team)}`, {method:'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "SUCCESS") {
+                    alert("🎉 Registration Complete!");
+                    document.getElementById('coinDisplay').innerText = data.newBalance;
+                    localStorage.setItem('userCoins', data.newBalance);
+                    closeModal();
+                    loadLiveSlots();
+                } else {
+                    alert("❌ Registration Intercept: " + data.status);
+                }
+            });
+        }
+
+        window.onload = function() {
+            checkOAuthCallback();
+            let email = localStorage.getItem('userEmail');
+            if(email) {
+                userEmail = email;
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'block';
+                document.getElementById('coinDisplay').innerText = localStorage.getItem('userCoins') || 0;
+                loadLiveSlots();
+            }
+        };
+    </script>
+</body>
+</html>

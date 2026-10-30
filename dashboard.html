@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional e-Sewa Wallet Sync</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root { --bg-primary: #0b0c10; --bg-secondary: #1f2833; --esewa-green: #60bb46; --text-light: #c5c6c7; --accent-neon: #00f0ff; --accent-glow: #ff4a5a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-light); }
+        header { background: #1f2833; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--esewa-green); }
+        .main-container { max-width: 1200px; margin: 50px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media(max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
+        .dashboard-box { background: var(--bg-secondary); border-radius: 8px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 0 15px rgba(96, 187, 70, 0.1); }
+        .balance-display { text-align: center; padding: 20px; background: rgba(96,187,70,0.05); border: 1px dashed var(--esewa-green); border-radius: 6px; margin-bottom: 20px; font-size: 32px; font-family: 'Orbitron', sans-serif; color: #fff; }
+        .esewa-details { background: #111; padding: 15px; border-radius: 6px; text-align: center; margin-bottom: 20px; font-size: 20px; color: var(--esewa-green); font-weight: bold; font-family: 'Orbitron'; border: 1px solid #333; }
+        .form-control { width: 100%; background: #111; border: 1px solid #444; padding: 12px; color: #fff; border-radius: 4px; margin-bottom: 15px; font-size: 16px; }
+        .btn { display: block; width: 100%; background: linear-gradient(90deg, var(--esewa-green), #4d9637); color: #fff; border: none; padding: 14px; font-size: 18px; font-weight: 700; cursor: pointer; border-radius: 4px; text-transform: uppercase; transition: 0.3s; margin-bottom: 10px; }
+        .btn-withdraw { background: linear-gradient(90deg, var(--accent-glow), #b32432); }
+        .btn:disabled { background: #444; opacity: 0.4; cursor: not-allowed; }
+        .user-badge { font-size: 14px; color: var(--accent-neon); text-align: center; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="font-family:'Orbitron'; font-size:24px; color:#fff; font-weight:bold;">eSewa<span>WALLET</span></div>
+        <nav><a href="index.html" style="color:#fff; text-decoration:none; font-weight:bold;">← Match Arena</a></nav>
+    </header>
+
+    <div class="main-container">
+        <!-- LEFT SIDE: DEPOSIT -->
+        <div class="dashboard-box">
+            <div class="balance-display" id="wCoins">0 COINS</div>
+            <div class="user-badge" id="accountBadge">Not Logged In</div>
+            <div class="esewa-details">DEPOSIT ID: 9800000000</div>
+            
+            <form onsubmit="submitDepositLog(event)">
+                <div style="margin-bottom:5px; color:#fff; font-size:14px;">Amount Deposited (NPR)</div>
+                <input type="number" id="vAmt" class="form-control" placeholder="Minimum 10 NPR" required min="10">
+                <div style="margin-bottom:5px; color:#fff; font-size:14px;">e-Sewa Transaction Ref ID</div>
+                <input type="text" id="vRef" class="form-control" placeholder="Enter Genuine ID" required>
+                <div style="margin-bottom:5px; color:#fff; font-size:14px;">Your Character IGN</div>
+                <input type="text" id="vIgn" class="form-control" placeholder="IGN" required>
+                <button type="submit" class="btn" id="subBtn">Submit Deposit</button>
+            </form>
+        </div>
+
+        <!-- RIGHT SIDE: WITHDRAWAL -->
+        <div class="dashboard-box" style="box-shadow: 0 0 15px rgba(255, 74, 90, 0.1);">
+            <div style="font-family:'Orbitron'; font-size:20px; color:#fff; margin-bottom:15px; border-left:4px solid var(--accent-glow); padding-left:10px;">COIN WITHDRAW SYSTEM</div>
+            <p style="color: #aaa; margin-bottom:20px; font-size:14px;">Minimum withdrawal limit is 50 Coins. Processing timeline completes payouts inside an 8-12 hour confirmation window pipeline safely.</p>
+            
+            <form onsubmit="submitWithdrawalLog(event)">
+                <div style="margin-bottom:5px; color:#fff; font-size:14px;">Coins Amount To Withdraw</div>
+                <input type="number" id="wAmt" class="form-control" placeholder="Minimum 50 Coins" required min="50">
+                <div style="margin-bottom:5px; color:#fff; font-size:14px;">Target e-Sewa ID Account Number</div>
+                <input type="text" id="wEsewaId" class="form-control" placeholder="Enter e-Sewa Phone Number" required>
+                <button type="submit" class="btn btn-withdraw" id="withBtn">Request Payout</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxs44WLqL-VuHiOEP_Cp2yz3c5-6dSvZMqUD44Xachla88xeVwZkEx5rzH6ol2KWpfi/exec";
+        let currentBalance = parseInt(localStorage.getItem('userCoins')) || 0;
+        
+        window.onload = function() {
+            let email = localStorage.getItem('userEmail');
+            if(!email) {
+                document.getElementById('accountBadge').innerText = "❌ Please login on index.html first!";
+                document.getElementById('accountBadge').style.color = "red";
+                document.getElementById('subBtn').disabled = true;
+                document.getElementById('withBtn').disabled = true;
+            } else {
+                document.getElementById('accountBadge').innerText = "Account Connected: " + email;
+                document.getElementById('wCoins').innerText = currentBalance + " COINS";
+            }
+        };
+
+        function submitDepositLog(e) {
+            e.preventDefault();
+            let amt = document.getElementById('vAmt').value;
+            let ref = document.getElementById('vRef').value;
+            let ign = document.getElementById('vIgn').value;
+            let email = localStorage.getItem('userEmail');
+
+            fetch(`${GOOGLE_WEB_APP_URL}?action=submitPayment&utr=${ref}&amount=${amt}&ign=${encodeURIComponent(ign)}&email=${encodeURIComponent(email)}`, {method:'POST'})
+            .then(() => {
+                alert("🚀 Settlement logged! Payout request will be processed soon.");
+                window.location.reload();
+            });
+        }
+
+        function submitWithdrawalLog(e) {
+            e.preventDefault();
+            let amt = parseInt(document.getElementById('wAmt').value);
+            let esewaId = document.getElementById('wEsewaId').value;
+            let email = localStorage.getItem('userEmail');
+
+            if (currentBalance < amt) {
+                alert("❌ Insufficient Coins! Request blocked.");
+                return;
+            }
+
+            fetch(`${GOOGLE_WEB_APP_URL}?action=submitWithdrawal&amount=${amt}&esewaId=${encodeURIComponent(esewaId)}&email=${encodeURIComponent(email)}`, {method:'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "SUCCESS") {
+                    alert("🎉 Payout request logged successfully! Your points will be settled within 8-12 hours.");
+                    localStorage.setItem('userCoins', data.newBalance);
+                    window.location.reload();
+                } else {
+                    alert("❌ Error: " + data.status);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
